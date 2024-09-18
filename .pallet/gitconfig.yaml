@@ -1,0 +1,18 @@
+---
+# reference https://github.com/coopnorge/cloud-platform-apis/blob/main/cloud-platform-apis/templates/repositoryconfig.github.coop.no/definition.yaml
+# status of this repository: https://argocd.internal.coop/applications?search=pallet-terraform-provider-opengpg&showFavorites=false&proj=&sync=&autoSync=&health=&namespace=&cluster=&labels=
+apiVersion: github.coop.no/v1alpha1
+kind: RepositoryConfig
+metadata:
+  name: repository-config
+spec:
+  description: The GPG provider allows to generate GPG encrypted message in ASCII-armored format using Terraform. It is a fork of https://github.com/invidian/terraform-provider-gpg.
+  branches:
+    default: main
+    protection:
+    - id: main
+      pattern: main
+      requiredStatusChecks:
+        checks:
+        - "Setup"
+        - "policy-bot: main"
