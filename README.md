@@ -15,6 +15,11 @@ The current implementation is using the `ProtonMail/go-crypto`-fork, but that
 is an implementation-detail, and not exposed in any interfaces, so it might change
 in the future.
 
+## Local development
+
+Run `docker compose run --rm --service-ports golang-devtools validate` to run
+linting, vetting and tests.
+
 ## Configuring your repository
 
 You can change settings in the repository by manupilating configuration file
