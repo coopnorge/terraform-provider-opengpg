@@ -14,5 +14,5 @@ spec:
       pattern: main
       requiredStatusChecks:
         checks:
-        - "Setup"
+        - "build"
         - "policy-bot: main"
