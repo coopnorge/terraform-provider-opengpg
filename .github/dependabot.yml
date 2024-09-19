@@ -2,7 +2,11 @@
 version: 2
 
 registries:
-
+  github-coopnorge:
+    type: git
+    url: https://github.com
+    username: x-access-token
+    password: ${{secrets.DEPENDABOT_GHCR_PULL}}
   coop-ghcr:
     type: docker-registry
     url: ghcr.io
@@ -14,6 +18,7 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+
   - package-ecosystem: "docker"
     directory: "/devtools"
     schedule:
@@ -24,3 +29,14 @@ updates:
       devtools:
         patterns:
           - coopnorge/engineering-docker-images/e0/*
+
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    registries:
+      - github-coopnorge
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: scope
