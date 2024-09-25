@@ -1,4 +1,4 @@
-package gpg
+package opengpg
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -9,7 +9,7 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		ResourcesMap: map[string]*schema.Resource{
-			"gpg_encrypted_message": resourceGPGEncryptedMessage(),
+			"opengpg_encrypted_message": resourceGPGEncryptedMessage(),
 		},
 	}
 }
