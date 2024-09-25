@@ -2,6 +2,8 @@
 
 The GPG provider allows to generate GPG encrypted message in ASCII-armored format
 using Terraform. It is a fork of [invidian/terraform-provider-gpg](https://github.com/invidian/terraform-provider-gpg).
+The provider, and it's resources has been renamed from `gpg` to `opengpg`, to make
+a clearer distinction between the two providers.
 
 The provider has been forked to add support for newer encryption-algorithms,
 such as [Curve25519](https://en.wikipedia.org/wiki/Curve25519).

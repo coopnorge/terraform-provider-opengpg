@@ -14,14 +14,14 @@ some storage (e.g. GCS bucket).
 ## Example Usage
 
 ```hcl
-resource "gpg_encrypted_message" "example" {
+resource "opengpg_encrypted_message" "example" {
   content     = "This is example of GPG encrypted message."
   public_keys = [
-    var.gpg_public_key,
+    var.opengpg_public_key,
   ]
 }
 
-variable "gpg_public_key" {
+variable "opengpg_public_key" {
   default = <<EOF
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 

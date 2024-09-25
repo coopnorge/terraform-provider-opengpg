@@ -14,25 +14,25 @@ Managing GPG keyring or signing files is currently not implemented.
 ```hcl
 terraform {
   required_providers {
-    gpg = {
+    opengpg = {
       source  = "coopnorge/opengpg"
-      version = "0.1.0"
+      version = "0.2.0"
     }
   }
 }
 
-resource "gpg_encrypted_message" "example" {
+resource "opengpg_encrypted_message" "example" {
   content     = "This is example of GPG encrypted message."
   public_keys = [
-    var.gpg_public_key,
+    var.opengpg_public_key,
   ]
 }
 
-output "gpg_encrypted_message" {
-  value = gpg_encrypted_message.example.result
+output "opengpg_encrypted_message" {
+  value = opengpg_encrypted_message.example.result
 }
 
-variable "gpg_public_key" {
+variable "opengpg_public_key" {
   default = <<EOF
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 

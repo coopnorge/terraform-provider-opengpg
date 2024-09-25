@@ -1,25 +1,38 @@
-package gpg_test
+package opengpg
 
 import (
-	"regexp"
-	"strings"
 	"testing"
 
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	protonpgp "github.com/ProtonMail/gopenpgp/v3/crypto"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-const rsaConfig = `
-resource "gpg_encrypted_message" "example" {
-  content     = "This is example of GPG encrypted message."
-  public_keys = [
-    var.gpg_public_key_rsa,
-  ]
+func TestEncryptMessage(t *testing.T) {
+	recipient, err := entityFromString(publicKeyRSA)
+	require.NoError(t, err)
+	recipients := []*protonpgp.Key{
+		recipient,
+	}
+	message := "hello world"
+	result, err := encryptAndEncodeMessage(recipients, message)
+	require.NoError(t, err)
+	assert.True(t, protonpgp.IsPGPMessage(result), "encrypted messages is not PGP message")
 }
 
-variable "gpg_public_key_rsa" {
-  description = "A public-key of type RSA 4096, using the SHA256 hashing algorithm"
-  default = <<EOF
------BEGIN PGP PUBLIC KEY BLOCK-----
+func TestEncryptMessageCurve(t *testing.T) {
+	recipient, err := entityFromString(publicKeyCurve)
+	require.NoError(t, err)
+	recipients := []*protonpgp.Key{
+		recipient,
+	}
+	message := "hello world"
+	result, err := encryptAndEncodeMessage(recipients, message)
+	require.NoError(t, err)
+	assert.True(t, protonpgp.IsPGPMessage(result), "encrypted messages is not PGP message")
+}
+
+var publicKeyRSA = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mQINBGbpjbsBEADXTqjVkXhDOl0iNmhdOgOmHsP7QSnOV8uYdRi4Pq4i+SZyMOMJ
 v3xeV3etB+xV3CkTe1BiBakG0DfTOnXDBW74g9VFhb4N3TNvggj0qx1fEDuQdqv/
@@ -69,23 +82,9 @@ U0p5LqG3+eVrqx5h1qogij/g4vuH4nc+CAM6TDaeCZpxvfSUj3DKywmmtnzmBGZy
 0xv/l1vp92dP7aboxptVk+9z8DXIsm1g98vLYEztfydn9fm61GrNhkEmMhlhXxKc
 Su/0YRS5KEtg0LAiIcQH7gYvmXTsl1Xb3gElCVWqGr1lSBAX8KUq1VI=
 =lZG6
------END PGP PUBLIC KEY BLOCK-----
-EOF
-}
-`
+-----END PGP PUBLIC KEY BLOCK-----`
 
-const ecc25519Config = `
-resource "gpg_encrypted_message" "example" {
-  content     = "This is example of GPG encrypted message."
-  public_keys = [
-    var.gpg_public_key_ecc25519,
-  ]
-}
-
-variable "gpg_public_key_ecc25519" {
-  description = "A public-key of type ECC 25519, using the SHA512 hashing algorithm"
-  default = <<EOF
------BEGIN PGP PUBLIC KEY BLOCK-----
+var publicKeyCurve = `-----BEGIN PGP PUBLIC KEY BLOCK-----
 
 mDMEZumPqxYJKwYBBAHaRw8BAQdAbEfcyIa1K25/DMwIocm+MfYYAF3jlq8+GxjY
 7FjzZ9S0LGZvb2Jhci1lY2MyNTUxOSAoZm9vYmFyKSA8Zm9vQGJhci1jdXJ2ZS5j
@@ -97,103 +96,4 @@ szkpBnI3TlJQqUeLaTYDAQgHiHgEGBYKACAWIQT3olI2/t6HX2MIvmYnB22SxES8
 hwUCZumPqwIbDAAKCRAnB22SxES8h/ErAQDlnDX+BRfsGyPR+WzhnTCV+fUvaWsG
 wCnk1/Lh1fpGhAEAhFokVxfOaontUAnC/dDsxSZ7KdLVgOOuwZskhidIagk=
 =1j0l
------END PGP PUBLIC KEY BLOCK-----
-EOF
-}
-`
-
-const badPublicKey = `
-resource "gpg_encrypted_message" "example" {
-  content     = "This is example of GPG encrypted message."
-  public_keys = [
-		"not valid message",
-  ]
-}
-`
-
-const badPublicKeyPEMEncoded = `
-resource "gpg_encrypted_message" "example" {
-  content     = "This is example of GPG encrypted message."
-	public_keys = [
-		<<EOF
------BEGIN PGP PUBLIC KEY BLOCK-----
-
-bm9wZQo=
------END PGP PUBLIC KEY BLOCK-----
-EOF
-		,
-	]
-}
-
-`
-
-const noPublicKeys = `
-resource "gpg_encrypted_message" "example" {
-  content     = "This is example of GPG encrypted message."
-  public_keys = []
-}
-`
-
-func TestGPGEncryptedMessageRSA(t *testing.T) {
-	t.Parallel()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: rsaConfig,
-			},
-			{
-				Config:             rsaConfig,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
-			{
-				Config:      badPublicKey,
-				ExpectError: regexp.MustCompile(`decoding public key #0: decoding public key: gopenpgp: error in reading key ring: openpgp: invalid data: tag byte does not have MSB set`),
-			},
-			{
-				Config:      badPublicKeyPEMEncoded,
-				ExpectError: regexp.MustCompile(`decoding public key #0: decoding public key: gopenpgp: error in reading key ring: openpgp: invalid data: tag byte does not have MSB set`),
-			},
-		},
-	})
-}
-
-func TestGPGEncryptedMessageECC25519(t *testing.T) {
-	t.Parallel()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories,
-		Steps: []resource.TestStep{
-			{
-				Config: ecc25519Config,
-			},
-			{
-				Config:             ecc25519Config,
-				PlanOnly:           true,
-				ExpectNonEmptyPlan: false,
-			},
-		},
-	})
-}
-
-func TestGPGEncryptedMessageBadArguments(t *testing.T) {
-	t.Parallel()
-
-	resource.UnitTest(t, resource.TestCase{
-		ProviderFactories: providerFactories,
-		Steps: []resource.TestStep{
-			{
-				Config:      noPublicKeys,
-				ExpectError: regexp.MustCompile(regexSpaceOrNewline(`Attribute public_keys requires 1 item minimum, but config has only 0 declared.`)),
-				Destroy:     false,
-			},
-		},
-	})
-}
-
-// regexSpaceOrNewline allows a string's spaces to be either a normal space or a newline. This is to allow less brittle tests when terraform changes their output
-func regexSpaceOrNewline(str string) string {
-	return strings.ReplaceAll(str, " ", "[\\ \\n]")
-}
+-----END PGP PUBLIC KEY BLOCK-----`
