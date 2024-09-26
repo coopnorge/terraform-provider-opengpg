@@ -1,15 +1,11 @@
 package opengpg
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"io"
-	"strings"
 
+	"github.com/coopnorge/terraform-provider-opengpg/encryption"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	protonpgp "github.com/ProtonMail/gopenpgp/v3/crypto"
 )
 
 func resourceGPGEncryptedMessage() *schema.Resource {
@@ -36,8 +32,12 @@ func resourceGPGEncryptedMessage() *schema.Resource {
 				Elem: &schema.Schema{
 					Type:     schema.TypeString,
 					ForceNew: true,
-					StateFunc: func(val interface{}) string {
-						recipient, err := entityFromString(val.(string))
+					StateFunc: func(val any) string {
+						publicKey, ok := val.(string)
+						if !ok {
+							return "MALFORMED KEY"
+						}
+						recipient, err := encryption.GetRecipient(publicKey)
 						if err != nil {
 							// We only keep KeyId in state, as we want to keep it small and also
 							// we always read public keys anyway. If public key is malformed,
@@ -46,7 +46,7 @@ func resourceGPGEncryptedMessage() *schema.Resource {
 						}
 
 						// Instead of full ASCII-armored key, write only KeyId to state.
-						return recipient.GetHexKeyID()
+						return recipient.GetKeyID()
 					},
 				},
 			},
@@ -60,34 +60,31 @@ func resourceGPGEncryptedMessage() *schema.Resource {
 	}
 }
 
-func getRecipients(data *schema.ResourceData) ([]*protonpgp.Key, error) {
-	// Store recipients for encryption.
-	recipients := []*protonpgp.Key{}
-
+func getRecipients(data *schema.ResourceData) ([]*encryption.Recipient, error) {
 	// Iterate over public keys, decode, parse, collect their IDs and add to recipients list.
-	publicKeys, ok := data.Get("public_keys").([]interface{})
+	publicKeysAny, ok := data.Get("public_keys").([]any)
 	if !ok {
-		return nil, fmt.Errorf("expected type %T on key %q, got %T", "public_keys", []interface{}{}, data.Get("public_keys"))
+		return nil, fmt.Errorf("expected type %T on key %q, got %T", []any{}, "public_keys", data.Get("public_keys"))
 	}
 
-	for i, pk := range publicKeys {
-		recipient, err := entityFromString(pk.(string))
-		if err != nil {
-			return nil, fmt.Errorf("decoding public key #%d: %w", i, err)
+	publicKeys := make([]string, 0, len(publicKeysAny))
+	for i, v := range publicKeysAny {
+		pk, ok := v.(string)
+		if !ok {
+			return nil, fmt.Errorf("expected type string on public key (idx %d), got %T", i, v)
 		}
-
-		recipients = append(recipients, recipient)
+		publicKeys = append(publicKeys, pk)
 	}
 
-	return recipients, nil
+	return encryption.GetRecipients(publicKeys)
 }
 
-func savePublicKeys(data *schema.ResourceData, recipients []*protonpgp.Key) error {
+func savePublicKeys(data *schema.ResourceData, recipients []*encryption.Recipient) error {
 	// Store ID of each public key, to store them in state (StateFunc does not work for TypeList for some reason).
 	pksIDs := []string{}
 
 	for _, recipient := range recipients {
-		pksIDs = append(pksIDs, recipient.GetHexKeyID())
+		pksIDs = append(pksIDs, recipient.GetKeyID())
 	}
 
 	if err := data.Set("public_keys", pksIDs); err != nil {
@@ -97,46 +94,7 @@ func savePublicKeys(data *schema.ResourceData, recipients []*protonpgp.Key) erro
 	return nil
 }
 
-func encryptAndEncodeMessage(recipients []*protonpgp.Key, message string) (string, error) {
-	if len(recipients) == 0 {
-		return "", fmt.Errorf("no recipients")
-	}
-	pgp := protonpgp.PGP()
-	keyring, err := protonpgp.NewKeyRing(nil)
-	if err != nil {
-		return "", fmt.Errorf("creating keyring: %w", err)
-	}
-
-	for i, v := range recipients {
-		err := keyring.AddKey(v)
-		if err != nil {
-			return "", fmt.Errorf("adding key to keyring (index %d): %w", i, err)
-		}
-	}
-
-	encrypter, err := pgp.Encryption().Recipients(keyring).New()
-	if err != nil {
-		return "", fmt.Errorf("creating encrypter: %w", err)
-	}
-
-	buf := bytes.NewBuffer(nil)
-	wcEncrypt, err := encrypter.EncryptingWriter(buf, protonpgp.Armor)
-	if err != nil {
-		return "", fmt.Errorf("encrypting message: %w", err)
-	}
-
-	if _, err := io.Copy(wcEncrypt, strings.NewReader(message)); err != nil {
-		return "", fmt.Errorf("writing content to buffer: %w", err)
-	}
-
-	if err := wcEncrypt.Close(); err != nil {
-		return "", fmt.Errorf("closing encrypted message: %w", err)
-	}
-
-	return buf.String(), nil
-}
-
-func resourceGPGEncryptedMessageCreate(data *schema.ResourceData, _ interface{}) error {
+func resourceGPGEncryptedMessageCreate(data *schema.ResourceData, _ any) error {
 	recipients, err := getRecipients(data)
 	if err != nil {
 		return fmt.Errorf("getting recipients: %w", err)
@@ -146,7 +104,12 @@ func resourceGPGEncryptedMessageCreate(data *schema.ResourceData, _ interface{})
 		return fmt.Errorf("saving public keys: %w", err)
 	}
 
-	encryptedMessage, err := encryptAndEncodeMessage(recipients, data.Get("content").(string))
+	plaintextMessage, ok := data.Get("content").(string)
+	if !ok {
+		return fmt.Errorf("Data in property %q was not a string", "content")
+	}
+
+	encryptedMessage, err := encryption.EncryptAndEncodeMessage(recipients, plaintextMessage)
 	if err != nil {
 		return fmt.Errorf("encrypting message: %w", err)
 	}
@@ -161,25 +124,17 @@ func resourceGPGEncryptedMessageCreate(data *schema.ResourceData, _ interface{})
 	return nil
 }
 
-func resourceGPGEncryptedMessageRead(_ *schema.ResourceData, _ interface{}) error {
+func resourceGPGEncryptedMessageRead(_ *schema.ResourceData, _ any) error {
 	return nil
 }
 
-func resourceGPGEncryptedMessageDelete(d *schema.ResourceData, _ interface{}) error {
+func resourceGPGEncryptedMessageDelete(d *schema.ResourceData, _ any) error {
 	d.SetId("")
 
 	return nil
 }
 
-func entityFromString(str string) (*protonpgp.Key, error) {
-	key, err := protonpgp.NewKeyFromArmored(str)
-	if err != nil {
-		return nil, fmt.Errorf("decoding public key: %w", err)
-	}
-	return key, nil
-}
-
-func sha256sum(data interface{}) string {
+func sha256sum(data any) string {
 	bytes, ok := data.(string)
 	if !ok {
 		// There is no way to handle this gracefully with existing SDK.
