@@ -3,7 +3,7 @@ module github.com/coopnorge/terraform-provider-opengpg
 go 1.22.0
 
 require (
-	github.com/ProtonMail/gopenpgp/v3 v3.0.0-alpha.4-proton
+	github.com/ProtonMail/gopenpgp/v3 v3.0.0-beta.0-proton
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.34.0
 	github.com/stretchr/testify v1.9.0
 )
