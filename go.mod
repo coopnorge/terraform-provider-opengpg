@@ -1,6 +1,6 @@
 module github.com/coopnorge/terraform-provider-opengpg
 
-go 1.22.0
+go 1.23.0
 
 require (
 	github.com/ProtonMail/gopenpgp/v3 v3.0.0
