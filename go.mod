@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/ProtonMail/gopenpgp/v3 v3.1.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.35.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
