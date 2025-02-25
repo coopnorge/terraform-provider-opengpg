@@ -25,6 +25,9 @@ jobs:
         run: |
           echo ::${{ steps.changes.outputs }}
 
+    permissions:
+      contents: read
+      pull-requests: read
   golang-ci:
     name: Go CI
     runs-on: ubuntu-latest
@@ -86,3 +89,4 @@ jobs:
         if: |
           needs.golang-ci.result == 'failure' ||
           needs.kubernetes-ci.result == 'failure'
+    permissions: {}
