@@ -3,13 +3,13 @@ module github.com/coopnorge/terraform-provider-opengpg
 go 1.23.0
 
 require (
-	github.com/ProtonMail/gopenpgp/v3 v3.1.2
+	github.com/ProtonMail/gopenpgp/v3 v3.1.3
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.36.1
 	github.com/stretchr/testify v1.10.0
 )
 
 require (
-	github.com/ProtonMail/go-crypto v1.1.5 // indirect
+	github.com/ProtonMail/go-crypto v1.1.6 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/cloudflare/circl v1.3.7 // indirect
