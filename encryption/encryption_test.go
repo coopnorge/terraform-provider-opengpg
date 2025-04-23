@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	protonErrors "github.com/ProtonMail/go-crypto/openpgp/errors"
 	protonpgp "github.com/ProtonMail/gopenpgp/v3/crypto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,8 +50,8 @@ func TestEncryptMessageExpired(t *testing.T) {
 			require.NoError(t, err)
 			message := "hello world"
 			result, err := EncryptAndEncodeMessage(recipients, message)
-			require.ErrorContains(t, err, "cannot encrypt a message")
-			require.ErrorContains(t, err, "no valid encryption keys")
+			require.ErrorContains(t, err, protonErrors.ErrKeyExpired.Error())
+			require.ErrorContains(t, err, "invalid primary key")
 			assert.Empty(t, result)
 		})
 	}
