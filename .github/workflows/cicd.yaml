@@ -7,10 +7,12 @@ on:
   workflow_dispatch: {}
 
 jobs:
-
   setup:
     name: Setup
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       run-kubernetes-ci: ${{ steps.changes.outputs.pallet == 'true' && github.event_name == 'pull_request' }}
       validate-policy-bot-config: ${{ steps.changes.outputs.policy-bot == 'true' }}
@@ -29,10 +31,6 @@ jobs:
         run: |
           echo ::${{ steps.changes.outputs }}
 
-    permissions:
-      contents: read
-      pull-requests: read
-
   policy-bot:
     name: Validate policy-bot configuration
     needs: setup
@@ -46,6 +44,10 @@ jobs:
   golang-ci:
     name: Go CI
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      packages: read
     env:
       docker-compose-service: golang-devtools
       XDG_CACHE_HOME: ${{ github.workspace }}/.cache/xdg
