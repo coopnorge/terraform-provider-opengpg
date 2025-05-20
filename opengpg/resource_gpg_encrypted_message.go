@@ -106,7 +106,7 @@ func resourceGPGEncryptedMessageCreate(data *schema.ResourceData, _ any) error {
 
 	plaintextMessage, ok := data.Get("content").(string)
 	if !ok {
-		return fmt.Errorf("Data in property %q was not a string", "content")
+		return fmt.Errorf("data in property %q was not a string", "content")
 	}
 
 	encryptedMessage, err := encryption.EncryptAndEncodeMessage(recipients, plaintextMessage)
