@@ -1,3 +1,3 @@
-FROM ghcr.io/coopnorge/engineering-docker-images/e0/devtools-golang-v1beta1:latest@sha256:73e242895ffedd101e62d911972255cfc932f446daedd485ce96809da0171d74 AS golang-devtools
+FROM ghcr.io/coopnorge/engineering-docker-images/e0/devtools-golang-v1beta1:latest@sha256:7455d2add5079245f4239fafbf511f4c0cd0957da90c3e5ec3c6245224819b5f AS golang-devtools
 # Do not remove, used by pallet validation
-FROM ghcr.io/coopnorge/engineering-docker-images/e0/devtools-kubernetes-v1beta1:latest@sha256:4aaac5b18d30ac5886392fe5d3a81429b4062ee8195fe6ca7671365d51c55946 AS kubernetes-devtools
+FROM ghcr.io/coopnorge/engineering-docker-images/e0/devtools-kubernetes-v1beta1:latest@sha256:370fc868640277a7a16d0a470ce506ddae89b25703c05c37e435b65f0608c01e AS kubernetes-devtools
