@@ -6,7 +6,7 @@ require (
 	github.com/ProtonMail/go-crypto v1.3.0
 	github.com/ProtonMail/gopenpgp/v3 v3.3.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.37.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
