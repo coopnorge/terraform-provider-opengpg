@@ -18,7 +18,7 @@ jobs:
       validate-policy-bot-config: ${{ steps.changes.outputs.policy-bot == 'true' }}
     steps:
       - uses: actions/checkout@v6
-      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # pin@v3
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
         id: changes
         with:
           list-files: json
@@ -54,9 +54,9 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # pin@v3
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # pin@v3
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
       - id: xdg_cache_hash
         run: echo "xdg_cache_hash=${{hashFiles('./docker-compose.yml', './devtools/Dockerfile', './go.sum')}}" >> $GITHUB_OUTPUT
       - name: Cache xdg
@@ -68,7 +68,7 @@ jobs:
             xdg-${{ github.repository }}-${{ github.job }}-${{ steps.xdg_cache_hash.outputs.xdg_cache_hash }}
             xdg-${{ github.repository }}-${{ github.job }}-
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # pin@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
