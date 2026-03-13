@@ -1,0 +1,25 @@
+on:
+  workflow_dispatch:
+    inputs:
+      log-level:
+        description: "Override default log level"
+        required: false
+        default: "debug"
+        type: string
+
+  schedule:
+    - cron: "0 4 * * *"
+
+jobs:
+  renovate:
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+      issues: write
+    uses: coopnorge/github-workflow-renovate/.github/workflows/renovate.yaml@v0
+    with:
+      post-upgrade-command: |
+        go tool mage terraform:docsValidateFix
+      log-level: ${{ inputs.log-level }}
+    secrets: inherit
