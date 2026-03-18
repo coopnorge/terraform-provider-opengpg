@@ -26,6 +26,10 @@ builds:
       # See https://releases.hashicorp.com/terraform/1.5.7/
       - goos: darwin
         goarch: "386"
+      # Exclude the following combinations because they are not supported by Goreleaser and Go
+      # See https://github.com/golang/go/issues/71671
+      - goos: windows
+        goarch: "arm"
     binary: "{{ .ProjectName }}_v{{ .Version }}"
 archives:
   - format: zip
