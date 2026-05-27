@@ -9,7 +9,7 @@ on:
 jobs:
   setup:
     name: Setup
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-slim
     permissions:
       contents: read
       pull-requests: read
@@ -99,14 +99,9 @@ jobs:
       - golang-ci
       - kubernetes-ci
       - policy-bot
-    if: always()
-    runs-on: ubuntu-24.04
+    if: failure() || cancelled()
+    runs-on: ubuntu-slim
     steps:
       - run: exit 1
         name: "Catch errors"
-        if: |
-          needs.golang-ci.result == 'failure' ||
-          needs.kubernetes-ci.result == 'failure' ||
-          needs.policy-bot.result == 'failure' ||
-          needs.policy-bot.result == 'cancelled'
     permissions: {}
