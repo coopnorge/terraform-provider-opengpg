@@ -1,13 +1,4 @@
 {
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "config:recommended",
-    ],
-    "automerge": true,
-    "automergeStrategy": "squash",
-    "rebaseWhen": "conflicted",
-    "postUpdateOptions": [
-        "gomodTidy",
-        "gomodUpdateImportPaths",
-    ],
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>coopnorge/github-workflow-renovate"],
 }
