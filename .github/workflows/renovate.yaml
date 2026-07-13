@@ -1,4 +1,7 @@
 on:
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       log-level:
@@ -6,9 +9,9 @@ on:
         required: false
         default: "debug"
         type: string
-
   schedule:
-    - cron: "0 4 * * *"
+    # At 07:30 AM and 12:30 PM, every day
+    - cron: "30 7,12 * * *"
 
 jobs:
   renovate:
@@ -19,7 +22,5 @@ jobs:
       issues: write
     uses: coopnorge/github-workflow-renovate/.github/workflows/renovate.yaml@v0
     with:
-      post-upgrade-command: |
-        go tool mage terraform:docsValidateFix
       log-level: ${{ inputs.log-level }}
     secrets: inherit
