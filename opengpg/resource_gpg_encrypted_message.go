@@ -1,20 +1,21 @@
 package opengpg
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 
 	"github.com/coopnorge/terraform-provider-opengpg/encryption"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceGPGEncryptedMessage() *schema.Resource {
 	return &schema.Resource{
-		// TODO: Migrate to <Create/Read/Delete/Update>Context
-		Create: resourceGPGEncryptedMessageCreate,
+		CreateContext: resourceGPGEncryptedMessageCreate,
 		// Those 2 functions below does nothing, but must be implemented.
-		Read:   resourceGPGEncryptedMessageRead,
-		Delete: resourceGPGEncryptedMessageDelete,
+		ReadContext:   resourceGPGEncryptedMessageRead,
+		DeleteContext: resourceGPGEncryptedMessageDelete,
 
 		Schema: map[string]*schema.Schema{
 			"content": {
@@ -94,28 +95,28 @@ func savePublicKeys(data *schema.ResourceData, recipients []*encryption.Recipien
 	return nil
 }
 
-func resourceGPGEncryptedMessageCreate(data *schema.ResourceData, _ any) error {
+func resourceGPGEncryptedMessageCreate(_ context.Context, data *schema.ResourceData, _ any) diag.Diagnostics {
 	recipients, err := getRecipients(data)
 	if err != nil {
-		return fmt.Errorf("getting recipients: %w", err)
+		return diag.FromErr(fmt.Errorf("getting recipients: %w", err))
 	}
 
 	if err := savePublicKeys(data, recipients); err != nil {
-		return fmt.Errorf("saving public keys: %w", err)
+		return diag.FromErr(fmt.Errorf("saving public keys: %w", err))
 	}
 
 	plaintextMessage, ok := data.Get("content").(string)
 	if !ok {
-		return fmt.Errorf("data in property %q was not a string", "content")
+		return diag.FromErr(fmt.Errorf("data in property %q was not a string", "content"))
 	}
 
 	encryptedMessage, err := encryption.EncryptAndEncodeMessage(recipients, plaintextMessage)
 	if err != nil {
-		return fmt.Errorf("encrypting message: %w", err)
+		return diag.FromErr(fmt.Errorf("encrypting message: %w", err))
 	}
 
 	if err := data.Set("result", encryptedMessage); err != nil {
-		return fmt.Errorf("setting %q property: %w", "result", err)
+		return diag.FromErr(fmt.Errorf("setting %q property: %w", "result", err))
 	}
 
 	// Calculate SHA-256 checksum of message for ID.
@@ -124,11 +125,11 @@ func resourceGPGEncryptedMessageCreate(data *schema.ResourceData, _ any) error {
 	return nil
 }
 
-func resourceGPGEncryptedMessageRead(_ *schema.ResourceData, _ any) error {
+func resourceGPGEncryptedMessageRead(_ context.Context, _ *schema.ResourceData, _ any) diag.Diagnostics {
 	return nil
 }
 
-func resourceGPGEncryptedMessageDelete(d *schema.ResourceData, _ any) error {
+func resourceGPGEncryptedMessageDelete(_ context.Context, d *schema.ResourceData, _ any) diag.Diagnostics {
 	d.SetId("")
 
 	return nil
