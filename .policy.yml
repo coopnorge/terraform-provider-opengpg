@@ -28,7 +28,7 @@ approval_rules:
   requires:
     count: 1   # A Dependabot pr requires 1 approval of review bot or a user
     teams:
-    - "coopnorge/engineering"
+    - "coopnorge/backend-and-platform-engineering"
     - "coopnorge/github-review-bots"
   options:
     invalidate_on_push: true
@@ -47,7 +47,7 @@ approval_rules:
   requires:
     count: 1   # The number of required review approvals
     teams:
-    - "coopnorge/engineering"
+    - "coopnorge/backend-and-platform-engineering"
   options:
     invalidate_on_push: true
     request_review:
