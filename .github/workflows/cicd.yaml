@@ -112,7 +112,7 @@ jobs:
       id-token: write
       packages: read
       pull-requests: read
-    uses: coopnorge/github-workflow-techdocs/.github/workflows/techdocs.yaml@v0
+    uses: coopnorge/github-workflow-techdocs/.github/workflows/techdocs.yaml@v0.6.1
 
   build:
     needs:
