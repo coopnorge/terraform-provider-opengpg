@@ -1,11 +1,12 @@
 # GPG Command Provider
 
-The GPG provider allows to generate GPG encrypted message in ASCII-armored format
-using Terraform.
+The GPG provider allows to generate GPG encrypted message in ASCII-armored
+format using Terraform.
 
-This provider uses community-maintained fork [ProtonMail/go-crypto](https://github.com/ProtonMail/go-crypto)
-to perform GPG encryption. Currently the only supported option is encrypting
-message with public keys.
+This provider uses community-maintained fork
+[ProtonMail/go-crypto](https://github.com/ProtonMail/go-crypto) to perform GPG
+encryption. Currently the only supported option is encrypting message with
+public keys.
 
 Managing GPG keyring or signing files is currently not implemented.
 

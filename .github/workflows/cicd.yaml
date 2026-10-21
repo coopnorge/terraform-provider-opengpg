@@ -16,6 +16,7 @@ jobs:
     outputs:
       run-kubernetes-ci: ${{ steps.changes.outputs.pallet == 'true' && github.event_name == 'pull_request' }}
       validate-policy-bot-config: ${{ steps.changes.outputs.policy-bot == 'true' }}
+      techdocs: ${{ steps.changes.outputs.techdocs == 'true' || steps.changes.outputs.workflows == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
@@ -27,6 +28,12 @@ jobs:
               - '.pallet/**'
             policy-bot:
               - '.policy.yml'
+            techdocs:
+              - 'docs/**'
+              - 'devtools/techdocs.*'
+              - '.vale/**'
+            workflows:
+              - '.github/workflows/**'
       - name: Debug ...
         run: |
           echo ::${{ steps.changes.outputs }}
@@ -94,11 +101,25 @@ jobs:
       contents: read
       pull-requests: write
 
+  techdocs:
+    needs: setup
+    if: needs.setup.outputs.techdocs == 'true'
+    concurrency:
+      group: ${{ github.repository }}-${{ github.workflow }}-techdocs-${{ github.ref }}
+      cancel-in-progress: true
+    permissions:
+      contents: read
+      id-token: write
+      packages: read
+      pull-requests: read
+    uses: coopnorge/github-workflow-techdocs/.github/workflows/techdocs.yaml@v0
+
   build:
     needs:
       - golang-ci
       - kubernetes-ci
       - policy-bot
+      - techdocs
     if: failure() || cancelled()
     runs-on: ubuntu-slim
     steps:

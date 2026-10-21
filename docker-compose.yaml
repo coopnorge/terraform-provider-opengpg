@@ -1,3 +1,5 @@
+include:
+  - devtools/techdocs.yaml
 services:
   golang-devtools:
     build:
