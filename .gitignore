@@ -1,3 +1,17 @@
 terraform-provider-opengpg*
 /coverage.out
 /dist/
+
+# TechDocs: the central mkdocs.yml is used and the build output is generated
+site/
+mkdocs.yml
+
+# Ignore everything in .vale, but allow the Local vocabulary
+.vale/*
+!.vale/styles/
+.vale/styles/*
+!.vale/styles/config/
+.vale/styles/config/*
+!.vale/styles/config/vocabularies/
+.vale/styles/config/vocabularies/*
+!.vale/styles/config/vocabularies/Local/

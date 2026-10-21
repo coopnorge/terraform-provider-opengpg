@@ -1,0 +1,14 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: terraform-provider-opengpg
+  title: "Terraform Provider OpenGPG"
+  description: Terraform provider for OpenGPG
+  tags: [terraform, terraform-provider]
+  annotations:
+    github.com/project-slug: coopnorge/terraform-provider-opengpg
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: library
+  owner: backend-and-platform-engineering
+  lifecycle: production

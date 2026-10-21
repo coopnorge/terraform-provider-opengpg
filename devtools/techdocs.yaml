@@ -1,0 +1,21 @@
+services:
+  techdocs:
+    build:
+      dockerfile: techdocs.Dockerfile
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-}
+      GCLOUD_PROJECT: ${GCLOUD_PROJECT:-}
+    volumes:
+      - ../:/srv/workspace:z
+      - ${XDG_CACHE_HOME:-xdg-cache-home}:/root/.cache
+      - $HOME/.config/gcloud:/root/.config/gcloud
+      - ${GOOGLE_APPLICATION_CREDENTIALS:-nothing}:${GOOGLE_APPLICATION_CREDENTIALS:-/tmp/empty-GOOGLE_APPLICATION_CREDENTIALS}
+    ports:
+      - "127.0.0.1:3000:3000/tcp"
+      - "127.0.0.1:41883:41883/tcp"
+      - "127.0.0.1:8000:8000/tcp"
+      - "127.0.0.1:41888:41888/tcp"
+    command: serve
+volumes:
+  xdg-cache-home: {}
+  nothing: {}
