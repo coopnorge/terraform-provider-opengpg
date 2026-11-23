@@ -21,8 +21,7 @@ change in the future.
 
 ## Local development
 
-Run `docker compose run --rm --service-ports golang-devtools validate` to run
-linting, vetting and tests.
+Run `go tool mage validate` to run linting, vetting and tests.
 
 ## Releasing
 

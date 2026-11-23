@@ -15,3 +15,5 @@ mkdocs.yml
 !.vale/styles/config/vocabularies/
 .vale/styles/config/vocabularies/*
 !.vale/styles/config/vocabularies/Local/
+
+/var/

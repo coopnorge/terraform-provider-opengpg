@@ -14,8 +14,6 @@ jobs:
       contents: read
       pull-requests: read
     outputs:
-      run-kubernetes-ci: ${{ steps.changes.outputs.pallet == 'true' && github.event_name == 'pull_request' }}
-      validate-policy-bot-config: ${{ steps.changes.outputs.policy-bot == 'true' }}
       techdocs: ${{ steps.changes.outputs.techdocs == 'true' || steps.changes.outputs.workflows == 'true' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -24,10 +22,6 @@ jobs:
         with:
           list-files: json
           filters: |
-            pallet:
-              - '.pallet/**'
-            policy-bot:
-              - '.policy.yml'
             techdocs:
               - 'docs/**'
               - 'devtools/techdocs.*'
@@ -38,68 +32,13 @@ jobs:
         run: |
           echo ::${{ steps.changes.outputs }}
 
-  policy-bot:
-    name: Validate policy-bot configuration
-    needs: setup
-    if: needs.setup.outputs.validate-policy-bot-config == 'true'
-    uses: coopnorge/github-workflow-policy-bot-config-validation/.github/workflows/policy-bot-config-validation.yaml@v0.1.7
-    permissions:
-      contents: read
-    secrets:
-      policy-bot-server-url: ${{ secrets.POLICY_BOT_BASE_URL }}
-
-  golang-ci:
-    name: Go CI
-    runs-on: ubuntu-24.04
+  mage:
+    uses: coopnorge/mage/.github/workflows/mage.yaml@b8f6347b5d938d692b3300bc107714e3a42f93a7 # v0.47.0
     permissions:
       contents: read
       id-token: write
       packages: read
-    env:
-      docker-compose-service: golang-devtools
-      XDG_CACHE_HOME: ${{ github.workspace }}/.cache/xdg
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4.4.0
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
-      - id: xdg_cache_hash
-        run: echo "xdg_cache_hash=${{hashFiles('./docker-compose.yml', './devtools/Dockerfile', './go.sum')}}" >> $GITHUB_OUTPUT
-      - name: Cache xdg
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ${{ env.XDG_CACHE_HOME }}
-          key: xdg-${{ github.repository }}-${{ github.job }}-${{ steps.xdg_cache_hash.outputs.xdg_cache_hash }}
-          restore-keys: |
-            xdg-${{ github.repository }}-${{ github.job }}-${{ steps.xdg_cache_hash.outputs.xdg_cache_hash }}
-            xdg-${{ github.repository }}-${{ github.job }}-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Configure access to internal and private GitHub repos
-        run: git config --global url."https://${{ secrets.REVIEWBOT_GITHUB_TOKEN }}:x-oauth-basic@github.com/coopnorge".insteadOf "https://github.com/coopnorge"
-      - name: Build devtools
-        run: docker compose build
-      - name: Validate
-        run: docker compose run --rm ${{ env.docker-compose-service }} validate VERBOSE=all
-
-  kubernetes-ci:
-    name: "Kubernetes CI"
-    concurrency:
-      group: ${{ github.repository }}-${{ github.workflow }}-kubernetes-ci-${{ github.ref }}
-      cancel-in-progress: true
-    needs: ["setup"]
-    if: ${{ needs.setup.outputs.run-kubernetes-ci == 'true'}}
-    uses: coopnorge/github-workflow-kubernetes-validation/.github/workflows/kubernetes-validation.yaml@v2.1.5
-    secrets:
-      argocd-api-token: ${{ secrets.ARGOCD_API_TOKEN }}
-    permissions:
-      contents: read
-      pull-requests: write
+    secrets: inherit
 
   techdocs:
     needs: setup
@@ -116,9 +55,7 @@ jobs:
 
   build:
     needs:
-      - golang-ci
-      - kubernetes-ci
-      - policy-bot
+      - mage
       - techdocs
     if: failure() || cancelled()
     runs-on: ubuntu-slim
